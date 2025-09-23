@@ -15,4 +15,8 @@ export class SignUpDto {
   @IsString()
   @IsNotEmpty()
   username: string;
+
+  @IsString()
+  @IsNotEmpty()
+  role: string;
 }

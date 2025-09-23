@@ -2,12 +2,16 @@ import { SignInDto, SignUpDto } from '@/dto';
 import { UserResponseDto } from '@/dto/user-response.dto';
 import { UserRepository } from '@/repository/user.repository';
 import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { v4 } from 'uuid';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(
+    private readonly userRepository: UserRepository,
+    private readonly jwtService: JwtService,
+  ) {}
 
   public async signIn(dto: SignInDto) {
     const userData = await this.userRepository.getUserByEmail(dto.email);
@@ -35,5 +39,20 @@ export class AuthService {
     });
 
     return new UserResponseDto(userData);
+  }
+
+  generateAccessToken(userId: string, role: string) {
+    return this.jwtService.sign({ sub: userId, role }, { expiresIn: '1m' });
+  }
+
+  generateRefreshToken(userId: string, role: string) {
+    return this.jwtService.sign({ sub: userId, role }, { expiresIn: '5m' });
+  }
+
+  generateTokens(userId: string, role: string) {
+    const acessToken = this.generateAccessToken(userId, role);
+    const refreshToken = this.generateRefreshToken(userId, role);
+
+    return { acessToken, refreshToken };
   }
 }
