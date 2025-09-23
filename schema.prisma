@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model users {
+  id             Int              @id @default(autoincrement())
+  uuid           String           @unique @db.Uuid
+  username       String           @unique
+  email          String           @unique
+  password       String
+  created_at     DateTime         @default(now())
+  updated_at     DateTime         @default(now())
+  access_tokens  access_tokens[]
+  refresh_tokens refresh_tokens[]
+  user_roles     user_roles[]
+}
+
+model roles {
+  id         Int          @id @default(autoincrement())
+  uuid       String       @unique @db.Uuid
+  name       String       @unique
+  level      Int?
+  created_at DateTime     @default(now())
+  updated_at DateTime     @default(now())
+  user_roles user_roles[]
+}
+
+model user_roles {
+  id      Int   @id @default(autoincrement())
+  user_id Int
+  role_id Int
+  role    roles @relation(fields: [role_id], references: [id])
+  user    users @relation(fields: [user_id], references: [id])
+
+  @@unique([user_id, role_id])
+}
+
+model access_tokens {
+  id         Int       @id @default(autoincrement())
+  user_id    Int
+  token      String    @unique
+  expires_at DateTime
+  created_at DateTime  @default(now())
+  revoked_at DateTime?
+  user       users     @relation(fields: [user_id], references: [id])
+}
+
+model refresh_tokens {
+  id         Int       @id @default(autoincrement())
+  user_id    Int
+  token      String    @unique
+  expires_at DateTime
+  created_at DateTime  @default(now())
+  revoked_at DateTime?
+  user       users     @relation(fields: [user_id], references: [id])
+}
