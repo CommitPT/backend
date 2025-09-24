@@ -1,5 +1,4 @@
-import { RefreshTokenDto, SignInDto, SignUpDto } from '@/dto';
-import { UserResponseDto } from '@/dto/user-response.dto';
+import { LogOutDto, RefreshTokenDto, SignInDto, SignUpDto, UserResponseDto } from '@/dto';
 import { RolesRepository } from '@/repository/roles.repository';
 import { TokenRepository } from '@/repository/token.repository';
 import { UserRepository } from '@/repository/user.repository';
@@ -144,7 +143,8 @@ export class AuthService {
     }
   }
 
-  public async logOut(accessToken: string) {
+  public async logOut(dto: LogOutDto) {
+    const accessToken = dto.accessToken;
     const storedToken = await this.tokenRepository.getAccessToken(accessToken);
 
     if (storedToken) {
@@ -154,7 +154,7 @@ export class AuthService {
         revoked_at: new Date(),
       });
 
-      await this.tokenRepository.revokeRefreshToken(storedToken); // Revoke any existing access tokens for this user
+      await this.tokenRepository.revokeRefreshToken(storedToken.user_id); // Revoke any existing access tokens for this user
     }
 
     return { message: 'Successfully logged out' };

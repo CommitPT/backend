@@ -1,4 +1,4 @@
-import { RefreshTokenDto, SignInDto, SignUpDto } from '@/dto';
+import { RefreshTokenDto, SignInDto, SignUpDto, LogOutDto } from '@/dto';
 import { AuthService } from '@/service/user.service';
 import { Body, Controller, HttpException, Logger, Post, Res, ValidationPipe } from '@nestjs/common';
 import { Response } from 'express';
@@ -40,6 +40,20 @@ export class AuthController {
     try {
       const refreshToken = await this.authService.refreshTokens(body);
       return res.status(201).json(refreshToken);
+    } catch (e) {
+      Logger.error(e);
+      if (e instanceof HttpException) {
+        return res.status(e.getStatus()).json(e.getResponse());
+      }
+      return res.status(500).json({ message: 'Internal server error' });
+    }
+  }
+
+  @Post('/logout')
+  async logOut(@Body(ValidationPipe) body: LogOutDto, @Res() res: Response) {
+    try {
+      const logOutMessage = await this.authService.logOut(body);
+      return res.status(201).json(logOutMessage);
     } catch (e) {
       Logger.error(e);
       if (e instanceof HttpException) {

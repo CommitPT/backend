@@ -40,13 +40,13 @@ export class TokenRepository {
     });
   }
 
-  public async revokeRefreshToken(token: refresh_tokens) {
+  public async revokeRefreshToken(user_id: number) {
     return this.prisma.refresh_tokens.updateMany({
       where: {
-        user_id: token.user_id,
+        user_id: user_id,
         revoked_at: null,
       },
-      data: token,
+      data: { revoked_at: new Date() },
     });
   }
 }
