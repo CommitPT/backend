@@ -117,7 +117,10 @@ export class AuthService {
       const accessTokenExpiry = new Date(Date.now() + 1 * 60 * 1000); // 1m (Test value)
       const refreshTokenExpiry = new Date(Date.now() + 5 * 60 * 60 * 1000); // 5m (Test value)
 
-      await this.tokenRepository.updateRefreshToken(storedRefreshToken.id); // Revoke old token
+      await this.tokenRepository.updateRefreshToken({
+        ...storedRefreshToken,
+        created_at: new Date(),
+      });
 
       await Promise.all([
         this.tokenRepository.createAccessToken({
@@ -137,6 +140,22 @@ export class AuthService {
       Logger.error(e);
       throw new UnauthorizedException('Invalid refresh token');
     }
+  }
+
+  public async logOut(accessToken: string) {
+    const storedToken = await this.tokenRepository.getAccessToken(accessToken);
+
+    if (storedToken) {
+      await this.tokenRepository.updateAccessToken({
+        // Revoke current token
+        ...storedToken,
+        revoked_at: new Date(),
+      });
+
+      await this.tokenRepository.revokeRefreshToken(storedToken); // Revoke any existing access tokens for this user
+    }
+
+    return { message: 'Successfully logged out' };
   }
 
   generateAccessToken(userId: string, role: string) {

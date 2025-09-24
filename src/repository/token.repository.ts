@@ -26,17 +26,27 @@ export class TokenRepository {
     });
   }
 
-  public async updateAccessToken(token_id: access_tokens['id']) {
+  public async updateAccessToken(token: access_tokens) {
     return this.prisma.access_tokens.update({
-      where: { id: token_id },
-      data: { revoked_at: new Date() },
+      where: { id: token.id },
+      data: token,
     });
   }
 
-  public async updateRefreshToken(token_id: refresh_tokens['id']) {
+  public async updateRefreshToken(token: refresh_tokens) {
     return this.prisma.refresh_tokens.update({
-      where: { id: token_id },
-      data: { revoked_at: new Date() },
+      where: { id: token.id },
+      data: token,
+    });
+  }
+
+  public async revokeRefreshToken(token: refresh_tokens) {
+    return this.prisma.refresh_tokens.updateMany({
+      where: {
+        user_id: token.user_id,
+        revoked_at: null,
+      },
+      data: token,
     });
   }
 }
