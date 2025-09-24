@@ -3,6 +3,7 @@ import { RefreshTokenDto, SignInDto, SignUpDto, LogOutDto } from '@/dto';
 import { AuthService } from '@/service/user.service';
 import { Body, Controller, HttpException, Logger, Post, Res, UseGuards, ValidationPipe } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { Throttle } from '@nestjs/throttler';
 import { Response } from 'express';
 
 @Controller('auth')
@@ -10,6 +11,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('/sign-in')
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
   async signIn(@Body(ValidationPipe) body: SignInDto, @Res() res: Response) {
     try {
       const user = await this.authService.signIn(body);

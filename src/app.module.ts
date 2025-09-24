@@ -8,6 +8,8 @@ import { RolesRepository } from './repository/roles.repository';
 import { TokenRepository } from './repository/token.repository';
 import { JwtStrategy } from './auth/jwt.strategy';
 import { RolesGuard } from './auth/roles.guard';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 const repositories = [UserRepository, RolesRepository, TokenRepository];
 const services = [AuthService];
@@ -19,9 +21,26 @@ const services = [AuthService];
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '1m' },
     }),
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: 60000,
+          limit: 10,
+        },
+      ],
+    }),
   ],
   controllers: [AuthController],
-  providers: [...services, ...repositories, JwtStrategy, RolesGuard],
+  providers: [
+    ...services,
+    ...repositories,
+    JwtStrategy,
+    RolesGuard,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
   exports: [JwtStrategy, RolesGuard],
 })
 export class AppModule {}
