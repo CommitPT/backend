@@ -4,8 +4,9 @@ import { AuthController } from './controller/auth.controller';
 import { UserRepository } from './repository/user.repository';
 import { AuthService } from './service/user.service';
 import { JwtModule } from '@nestjs/jwt';
+import { RolesRepository } from './repository/roles.repository';
 
-const repositories = [UserRepository];
+const repositories = [UserRepository, RolesRepository];
 const services = [AuthService];
 
 @Module({

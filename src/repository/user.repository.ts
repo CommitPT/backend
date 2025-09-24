@@ -13,6 +13,9 @@ export class UserRepository {
   }
 
   public async createUser(data: Prisma.usersCreateInput) {
-    return this.prisma.users.create({ data });
+    return this.prisma.users.create({
+      data,
+      include: { user_roles: { include: { role: true } } },
+    });
   }
 }

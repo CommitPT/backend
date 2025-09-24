@@ -28,7 +28,9 @@
     "prisma:migrate": "npx prisma migrate dev",
     "prisma:pull": "npx prisma db pull",
     "prisma:push": "npx prisma db push",
-    "prisma:validate": "npx prisma validate"
+    "prisma:validate": "npx prisma validate",
+    "seed": "ts-node prisma/seed.ts",
+    "seed:dev": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

@@ -1,5 +1,6 @@
 import { SignInDto, SignUpDto } from '@/dto';
 import { UserResponseDto } from '@/dto/user-response.dto';
+import { RolesRepository } from '@/repository/roles.repository';
 import { UserRepository } from '@/repository/user.repository';
 import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -11,6 +12,7 @@ export class AuthService {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly jwtService: JwtService,
+    private readonly rolesRepository: RolesRepository,
   ) {}
 
   public async signIn(dto: SignInDto) {
@@ -31,11 +33,24 @@ export class AuthService {
 
     const encryptedPassword = await bcrypt.hash(dto.password, 10);
 
+    const role = await this.rolesRepository.getRoleByName(dto.role);
+
+    if (dto.role != 'MEMBER' || !role) throw new UnauthorizedException('Role not available');
+
     const userData = await this.userRepository.createUser({
       uuid: v4(),
       email: dto.email,
       password: encryptedPassword,
       username: dto.username,
+      user_roles: {
+        create: [
+          {
+            role: {
+              connect: { id: role.id },
+            },
+          },
+        ],
+      },
     });
 
     return new UserResponseDto(userData);
