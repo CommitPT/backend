@@ -1,6 +1,8 @@
+import { RolesGuard } from '@/auth/roles.guard';
 import { RefreshTokenDto, SignInDto, SignUpDto, LogOutDto } from '@/dto';
 import { AuthService } from '@/service/user.service';
-import { Body, Controller, HttpException, Logger, Post, Res, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, HttpException, Logger, Post, Res, UseGuards, ValidationPipe } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { Response } from 'express';
 
 @Controller('auth')
@@ -36,6 +38,7 @@ export class AuthController {
   }
 
   @Post('/refresh')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   async refresh(@Body(ValidationPipe) body: RefreshTokenDto, @Res() res: Response) {
     try {
       const refreshToken = await this.authService.refreshTokens(body);
@@ -50,6 +53,7 @@ export class AuthController {
   }
 
   @Post('/logout')
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   async logOut(@Body(ValidationPipe) body: LogOutDto, @Res() res: Response) {
     try {
       const logOutMessage = await this.authService.logOut(body);

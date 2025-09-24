@@ -6,6 +6,8 @@ import { AuthService } from './service/user.service';
 import { JwtModule } from '@nestjs/jwt';
 import { RolesRepository } from './repository/roles.repository';
 import { TokenRepository } from './repository/token.repository';
+import { JwtStrategy } from './auth/jwt.strategy';
+import { RolesGuard } from './auth/roles.guard';
 
 const repositories = [UserRepository, RolesRepository, TokenRepository];
 const services = [AuthService];
@@ -19,6 +21,7 @@ const services = [AuthService];
     }),
   ],
   controllers: [AuthController],
-  providers: [...services, ...repositories],
+  providers: [...services, ...repositories, JwtStrategy, RolesGuard],
+  exports: [JwtStrategy, RolesGuard],
 })
 export class AppModule {}
