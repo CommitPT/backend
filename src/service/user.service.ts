@@ -96,8 +96,10 @@ export class AuthService {
     return new UserResponseDto(userData, accessToken, refreshToken);
   }
 
-  public async refreshTokens(oldToken: string) {
+  public async refreshTokens(dto: RefreshTokenDto) {
     try {
+      const oldToken = dto.refreshToken;
+
       this.jwtService.verify(oldToken);
 
       const storedRefreshToken = await this.tokenRepository.getRefreshToken(oldToken);
