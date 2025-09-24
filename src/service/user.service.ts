@@ -25,6 +25,10 @@ export class AuthService {
 
     if (!isPasswordValid) throw new UnauthorizedException();
 
+    if (!userData.user_roles || userData.user_roles.length === 0) {
+      throw new UnauthorizedException('User has no assigned role');
+    }
+
     const userRole = userData.user_roles[0].role.name; // Check later how to handle this better
 
     const { accessToken, refreshToken } = this.generateTokens(userData.uuid, userRole);
