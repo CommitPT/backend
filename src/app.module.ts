@@ -5,8 +5,9 @@ import { UserRepository } from './repository/user.repository';
 import { AuthService } from './service/user.service';
 import { JwtModule } from '@nestjs/jwt';
 import { RolesRepository } from './repository/roles.repository';
+import { TokenRepository } from './repository/token.repository';
 
-const repositories = [UserRepository, RolesRepository];
+const repositories = [UserRepository, RolesRepository, TokenRepository];
 const services = [AuthService];
 
 @Module({

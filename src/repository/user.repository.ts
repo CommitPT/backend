@@ -9,6 +9,11 @@ export class UserRepository {
   public async getUserByEmail(email: users['email']) {
     return this.prisma.users.findUnique({
       where: { email },
+      include: {
+        user_roles: {
+          include: { role: true },
+        },
+      },
     });
   }
 

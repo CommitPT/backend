@@ -1,6 +1,7 @@
 import { SignInDto, SignUpDto } from '@/dto';
 import { UserResponseDto } from '@/dto/user-response.dto';
 import { RolesRepository } from '@/repository/roles.repository';
+import { TokenRepository } from '@/repository/token.repository';
 import { UserRepository } from '@/repository/user.repository';
 import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -13,6 +14,7 @@ export class AuthService {
     private readonly userRepository: UserRepository,
     private readonly jwtService: JwtService,
     private readonly rolesRepository: RolesRepository,
+    private readonly tokenRepository: TokenRepository,
   ) {}
 
   public async signIn(dto: SignInDto) {
@@ -24,7 +26,27 @@ export class AuthService {
 
     if (!isPasswordValid) throw new UnauthorizedException();
 
-    return new UserResponseDto(userData);
+    const userRole = userData.user_roles[0].role.name; // Check later how to handle this better
+
+    const { accessToken, refreshToken } = this.generateTokens(userData.uuid, userRole);
+
+    const accessTokenExpiry = new Date(Date.now() + 1 * 60 * 1000); // 1m (Test value)
+    const refreshTokenExpiry = new Date(Date.now() + 5 * 60 * 60 * 1000); // 1m (Test value)
+
+    await Promise.all([
+      this.tokenRepository.createAccessToken({
+        user: { connect: { id: userData.id } },
+        token: accessToken,
+        expires_at: accessTokenExpiry,
+      }),
+      this.tokenRepository.createRefreshToken({
+        user: { connect: { id: userData.id } },
+        token: refreshToken,
+        expires_at: refreshTokenExpiry,
+      }),
+    ]);
+
+    return new UserResponseDto(userData, accessToken, refreshToken);
   }
 
   public async signUp(dto: SignUpDto) {
@@ -53,7 +75,25 @@ export class AuthService {
       },
     });
 
-    return new UserResponseDto(userData);
+    const { accessToken, refreshToken } = this.generateTokens(userData.uuid, role.name);
+
+    const accessTokenExpiry = new Date(Date.now() + 1 * 60 * 1000); // 1m (Test value)
+    const refreshTokenExpiry = new Date(Date.now() + 5 * 60 * 60 * 1000); // 1m (Test value)
+
+    await Promise.all([
+      this.tokenRepository.createAccessToken({
+        user: { connect: { id: userData.id } },
+        token: accessToken,
+        expires_at: accessTokenExpiry,
+      }),
+      this.tokenRepository.createRefreshToken({
+        user: { connect: { id: userData.id } },
+        token: refreshToken,
+        expires_at: refreshTokenExpiry,
+      }),
+    ]);
+
+    return new UserResponseDto(userData, accessToken, refreshToken);
   }
 
   generateAccessToken(userId: string, role: string) {
@@ -65,9 +105,9 @@ export class AuthService {
   }
 
   generateTokens(userId: string, role: string) {
-    const acessToken = this.generateAccessToken(userId, role);
+    const accessToken = this.generateAccessToken(userId, role);
     const refreshToken = this.generateRefreshToken(userId, role);
 
-    return { acessToken, refreshToken };
+    return { accessToken, refreshToken };
   }
 }
