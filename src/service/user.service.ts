@@ -1,9 +1,9 @@
-import { SignInDto, SignUpDto } from '@/dto';
+import { RefreshTokenDto, SignInDto, SignUpDto } from '@/dto';
 import { UserResponseDto } from '@/dto/user-response.dto';
 import { RolesRepository } from '@/repository/roles.repository';
 import { TokenRepository } from '@/repository/token.repository';
 import { UserRepository } from '@/repository/user.repository';
-import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { v4 } from 'uuid';
@@ -31,7 +31,7 @@ export class AuthService {
     const { accessToken, refreshToken } = this.generateTokens(userData.uuid, userRole);
 
     const accessTokenExpiry = new Date(Date.now() + 1 * 60 * 1000); // 1m (Test value)
-    const refreshTokenExpiry = new Date(Date.now() + 5 * 60 * 60 * 1000); // 1m (Test value)
+    const refreshTokenExpiry = new Date(Date.now() + 5 * 60 * 60 * 1000); // 5m (Test value)
 
     await Promise.all([
       this.tokenRepository.createAccessToken({
@@ -78,7 +78,7 @@ export class AuthService {
     const { accessToken, refreshToken } = this.generateTokens(userData.uuid, role.name);
 
     const accessTokenExpiry = new Date(Date.now() + 1 * 60 * 1000); // 1m (Test value)
-    const refreshTokenExpiry = new Date(Date.now() + 5 * 60 * 60 * 1000); // 1m (Test value)
+    const refreshTokenExpiry = new Date(Date.now() + 5 * 60 * 60 * 1000); // 5m (Test value)
 
     await Promise.all([
       this.tokenRepository.createAccessToken({
@@ -94,6 +94,49 @@ export class AuthService {
     ]);
 
     return new UserResponseDto(userData, accessToken, refreshToken);
+  }
+
+  public async refreshTokens(oldToken: string) {
+    try {
+      this.jwtService.verify(oldToken);
+
+      const storedRefreshToken = await this.tokenRepository.getRefreshToken(oldToken);
+
+      if (!storedRefreshToken || storedRefreshToken.expires_at < new Date()) {
+        throw new UnauthorizedException('Invalid or expired refresh token');
+      }
+
+      const userData = await this.userRepository.getUserById(storedRefreshToken.user_id);
+
+      if (!userData) throw new UnauthorizedException('User not found');
+
+      const userRole = userData.user_roles[0].role.name;
+
+      const { accessToken, refreshToken: newRefreshToken } = this.generateTokens(userData.uuid, userRole);
+
+      const accessTokenExpiry = new Date(Date.now() + 1 * 60 * 1000); // 1m (Test value)
+      const refreshTokenExpiry = new Date(Date.now() + 5 * 60 * 60 * 1000); // 5m (Test value)
+
+      await this.tokenRepository.updateRefreshToken(storedRefreshToken.id); // Revoke old token
+
+      await Promise.all([
+        this.tokenRepository.createAccessToken({
+          user: { connect: { id: userData.id } },
+          token: accessToken,
+          expires_at: accessTokenExpiry,
+        }),
+        this.tokenRepository.createRefreshToken({
+          user: { connect: { id: userData.id } },
+          token: newRefreshToken,
+          expires_at: refreshTokenExpiry,
+        }),
+      ]);
+
+      return new RefreshTokenDto(newRefreshToken);
+    } catch (e) {
+      Logger.error(e);
+      throw new UnauthorizedException('Invalid refresh token');
+    }
   }
 
   generateAccessToken(userId: string, role: string) {

@@ -1,6 +1,6 @@
 import { PrismaService } from '@/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { access_tokens, Prisma, refresh_tokens } from '@prisma/client';
 
 @Injectable()
 export class TokenRepository {
@@ -23,6 +23,20 @@ export class TokenRepository {
   public async getRefreshToken(token: string) {
     return this.prisma.refresh_tokens.findUnique({
       where: { token },
+    });
+  }
+
+  public async updateAccessToken(token_id: access_tokens['id']) {
+    return this.prisma.access_tokens.update({
+      where: { id: token_id },
+      data: { revoked_at: new Date() },
+    });
+  }
+
+  public async updateRefreshToken(token_id: refresh_tokens['id']) {
+    return this.prisma.refresh_tokens.update({
+      where: { id: token_id },
+      data: { revoked_at: new Date() },
     });
   }
 }
