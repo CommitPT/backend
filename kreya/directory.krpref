@@ -1,0 +1,12 @@
+{
+  "settings": [
+    {
+      "options": {
+        "rest": {
+          "endpoint": "http://localhost:3000",
+          "pathParams": []
+        }
+      }
+    }
+  ]
+}
