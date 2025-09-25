@@ -161,8 +161,6 @@ export class AuthService {
 
       await this.tokenRepository.revokeRefreshToken(storedToken.user_id); // Revoke any existing access tokens for this user
     }
-
-    return { message: 'Successfully logged out' };
   }
 
   generateAccessToken(userId: string, role: string) {
