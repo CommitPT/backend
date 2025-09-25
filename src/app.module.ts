@@ -1,15 +1,16 @@
 import { PrismaModule } from '@/prisma/prisma.module';
 import { Module } from '@nestjs/common';
-import { AuthController } from './controller/auth.controller';
-import { UserRepository } from './repository/user.repository';
-import { AuthService } from './service/user.service';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
-import { RolesRepository } from './repository/roles.repository';
-import { TokenRepository } from './repository/token.repository';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { JwtStrategy } from './auth/jwt.strategy';
 import { RolesGuard } from './auth/roles.guard';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import { APP_GUARD } from '@nestjs/core';
+import { AuthController } from './controller/auth/index.controller';
+import { HttpExceptionFilter } from './filters/http-exception.filter';
+import { RolesRepository } from './repository/roles.repository';
+import { TokenRepository } from './repository/token.repository';
+import { UserRepository } from './repository/user.repository';
+import { AuthService } from './service/user.service';
 
 const repositories = [UserRepository, RolesRepository, TokenRepository];
 const services = [AuthService];
@@ -39,6 +40,10 @@ const services = [AuthService];
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: HttpExceptionFilter,
     },
   ],
   exports: [JwtStrategy, RolesGuard],

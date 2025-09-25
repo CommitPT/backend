@@ -141,7 +141,7 @@ export class AuthService {
         }),
       ]);
 
-      return new RefreshTokenDto(newRefreshToken);
+      return { refreshToken: newRefreshToken, accessToken: accessToken };
     } catch (e) {
       Logger.error(e);
       throw new UnauthorizedException('Invalid refresh token');
