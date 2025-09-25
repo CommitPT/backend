@@ -33,10 +33,10 @@ export class AuthService {
 
     const { accessToken, refreshToken } = this.generateTokens(userData.uuid, userRole);
 
-    const accessTokenExpiry = new Date(Date.now() + 1 * 60 * 1000); // 1m (Test value)
-    const refreshTokenExpiry = new Date(Date.now() + 5 * 60 * 60 * 1000); // 5m (Test value)
+    const accessTokenExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5m
+    const refreshTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
 
-    await Promise.all([
+    await Promise.allSettled([
       this.tokenRepository.createAccessToken({
         user: { connect: { id: userData.id } },
         token: accessToken,
@@ -80,10 +80,10 @@ export class AuthService {
 
     const { accessToken, refreshToken } = this.generateTokens(userData.uuid, role.name);
 
-    const accessTokenExpiry = new Date(Date.now() + 1 * 60 * 1000); // 1m (Test value)
-    const refreshTokenExpiry = new Date(Date.now() + 5 * 60 * 60 * 1000); // 5m (Test value)
+    const accessTokenExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5m
+    const refreshTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
 
-    await Promise.all([
+    await Promise.allSettled([
       this.tokenRepository.createAccessToken({
         user: { connect: { id: userData.id } },
         token: accessToken,
@@ -119,15 +119,15 @@ export class AuthService {
 
       const { accessToken, refreshToken: newRefreshToken } = this.generateTokens(userData.uuid, userRole);
 
-      const accessTokenExpiry = new Date(Date.now() + 1 * 60 * 1000); // 1m (Test value)
-      const refreshTokenExpiry = new Date(Date.now() + 5 * 60 * 60 * 1000); // 5m (Test value)
+      const accessTokenExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5m
+      const refreshTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
 
       await this.tokenRepository.updateRefreshToken({
         ...storedRefreshToken,
         created_at: new Date(),
       });
 
-      await Promise.all([
+      await Promise.allSettled([
         this.tokenRepository.createAccessToken({
           user: { connect: { id: userData.id } },
           token: accessToken,
@@ -165,11 +165,11 @@ export class AuthService {
   }
 
   generateAccessToken(userId: string, role: string) {
-    return this.jwtService.sign({ sub: userId, role }, { expiresIn: '1m' });
+    return this.jwtService.sign({ sub: userId, role }, { expiresIn: '5m' });
   }
 
   generateRefreshToken(userId: string, role: string) {
-    return this.jwtService.sign({ sub: userId, role }, { expiresIn: '5m' });
+    return this.jwtService.sign({ sub: userId, role }, { expiresIn: '24h' });
   }
 
   generateTokens(userId: string, role: string) {
