@@ -1,9 +1,10 @@
 import { RolesGuard } from '@/auth/roles.guard';
-import { RefreshTokenDto, SignInDto, SignUpDto, LogOutDto } from '@/dto';
+import { RefreshTokenDto, SignInDto, SignUpDto } from '@/dto';
 import { AuthService } from '@/service/user.service';
 import {
   Body,
   Controller,
+  Headers,
   HttpException,
   HttpStatus,
   Logger,
@@ -66,9 +67,11 @@ export class AuthController {
 
   @Post('/logout')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  async logOut(@Body(ValidationPipe) body: LogOutDto, @Res() res: Response) {
+  async logOut(@Headers('Authorization') authHeader: string, @Res() res: Response) {
     try {
-      await this.authService.logOut(body);
+      const token = authHeader?.replace('Bearer ', '');
+
+      await this.authService.logOut(token);
       return res.status(HttpStatus.OK).json(null);
     } catch (e) {
       Logger.error(e);

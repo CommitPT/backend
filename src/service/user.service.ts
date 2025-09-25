@@ -1,5 +1,5 @@
 import { Role } from '@/auth/roles.enum';
-import { LogOutDto, RefreshTokenDto, SignInDto, SignUpDto, UserResponseDto } from '@/dto';
+import { RefreshTokenDto, SignInDto, SignUpDto, UserResponseDto } from '@/dto';
 import { RolesRepository } from '@/repository/roles.repository';
 import { TokenRepository } from '@/repository/token.repository';
 import { UserRepository } from '@/repository/user.repository';
@@ -148,8 +148,7 @@ export class AuthService {
     }
   }
 
-  public async logOut(dto: LogOutDto) {
-    const accessToken = dto.accessToken;
+  public async logOut(accessToken: string) {
     const storedToken = await this.tokenRepository.getAccessToken(accessToken);
 
     if (storedToken) {
