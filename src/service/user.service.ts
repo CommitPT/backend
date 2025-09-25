@@ -1,3 +1,4 @@
+import { Role } from '@/auth/roles.enum';
 import { LogOutDto, RefreshTokenDto, SignInDto, SignUpDto, UserResponseDto } from '@/dto';
 import { RolesRepository } from '@/repository/roles.repository';
 import { TokenRepository } from '@/repository/token.repository';
@@ -58,9 +59,9 @@ export class AuthService {
 
     const encryptedPassword = await bcrypt.hash(dto.password, 10);
 
-    const role = await this.rolesRepository.getRoleByName(dto.role);
+    const role = await this.rolesRepository.getRoleByName(Role.Member);
 
-    if (dto.role != 'MEMBER' || !role) throw new UnauthorizedException('Role not available');
+    if (!role) throw new UnauthorizedException('Role doesnt exist');
 
     const userData = await this.userRepository.createUser({
       uuid: v4(),
