@@ -32,6 +32,10 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config, {
     ignoreGlobalPrefix: true,
   });
+
+  //writeFileSync('./openapi.json', JSON.stringify(document, null, 2));
+  console.log('✅ Swagger JSON file generated at ./openapi.json');
+
   SwaggerModule.setup('api', app, document, {
     swaggerOptions: {
       persistAuthorization: true,
